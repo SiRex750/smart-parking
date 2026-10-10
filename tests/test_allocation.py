@@ -37,3 +37,26 @@ def test_tc_alc_01_does_not_change_lot_state():
     before = lot.occupancy()
     find_slot(lot, CAR)
     assert lot.occupancy() == before
+
+
+def test_tc_alc_02_car_prefers_compact_over_large():
+    from smart_parking.models import ParkingLot, Slot
+
+    lot = ParkingLot("t", [Slot("L0-L1", SlotType.LARGE, 0), Slot("L0-C1", SlotType.COMPACT, 0)])
+    assert find_slot(lot, CAR).slot_id == "L0-C1"
+
+
+def test_tc_alc_02_lowest_level_first():
+    from smart_parking.models import ParkingLot, Slot
+
+    lot = ParkingLot("t", [Slot("L1-C1", SlotType.COMPACT, 1), Slot("L0-C1", SlotType.COMPACT, 0)])
+    assert find_slot(lot, CAR).slot_id == "L0-C1"
+
+
+def test_tc_alc_02_car_uses_large_when_no_compact_free():
+    lot = build_demo_lot()
+    for slot in lot.slots:
+        if slot.slot_type == SlotType.COMPACT:
+            slot.occupied_by = "TAKEN"
+    chosen = find_slot(lot, CAR)
+    assert chosen.slot_type == SlotType.LARGE and chosen.level == 0
