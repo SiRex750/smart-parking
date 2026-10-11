@@ -84,3 +84,33 @@ def test_tc_alc_03_non_ev_car_gets_ev_slot_when_last_option():
 def test_tc_alc_03_ev_car_prefers_ev_slot():
     ev_car = Vehicle("KA01EV0001", VehicleType.CAR, is_ev=True)
     assert find_slot(_ev_lot(), ev_car).slot_id == "L0-EV1"
+
+
+# --- SPMS-F-005 lot full ----------------------------------------------------------
+import pytest
+
+from smart_parking.allocation import require_slot
+from smart_parking.errors import LotFullError
+
+
+def test_tc_alc_04_full_for_suv_raises_clear_message():
+    lot = build_demo_lot()
+    for slot in lot.slots:
+        if slot.slot_type == SlotType.LARGE:
+            slot.occupied_by = "TAKEN"
+    before = lot.occupancy()
+    with pytest.raises(LotFullError, match=r"suv: all 2 large slot\(s\)"):
+        require_slot(lot, SUV)
+    assert lot.occupancy() == before
+
+
+def test_tc_alc_04_lot_without_that_slot_type():
+    from smart_parking.models import ParkingLot, Slot
+
+    lot = ParkingLot("cars only", [Slot("C1", SlotType.COMPACT)])
+    with pytest.raises(LotFullError, match="no two_wheeler slots"):
+        require_slot(lot, BIKE)
+
+
+def test_tc_alc_04_returns_slot_when_available():
+    assert require_slot(build_demo_lot(), SUV).slot_type == SlotType.LARGE
