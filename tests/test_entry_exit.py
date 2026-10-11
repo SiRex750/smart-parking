@@ -83,3 +83,55 @@ def test_tc_ent_03_different_plates_both_allowed():
     vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
     vehicle_entry(lot, Vehicle("KA01AB1235", VehicleType.CAR), NOW, tickets)
     assert lot.occupancy()["occupied"] == 2
+
+
+# --- SPMS-F-009 vehicle exit ------------------------------------------------------
+from datetime import timedelta
+
+from smart_parking.billing import MockGateway, pay
+from smart_parking.entry_exit import vehicle_exit
+from smart_parking.errors import ParkingError, UnpaidTicketError
+
+
+def _parked(minutes):
+    lot, tickets = build_demo_lot(), {}
+    t = vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
+    return lot, tickets, t, NOW + timedelta(minutes=minutes)
+
+
+def test_tc_ext_01_unpaid_exit_refused_and_amount_set():
+    lot, tickets, t, later = _parked(120)
+    with pytest.raises(UnpaidTicketError, match="60"):
+        vehicle_exit(lot, t.ticket_id, later, tickets)
+    assert t.amount_due == 60 and t.exit_time is None
+    assert lot.get_slot(t.slot_id).occupied_by == "KA01AB1234"
+
+
+def test_tc_ext_01_paid_exit_releases_slot():
+    lot, tickets, t, later = _parked(120)
+    with pytest.raises(UnpaidTicketError):
+        vehicle_exit(lot, t.ticket_id, later, tickets)
+    pay(t, t.amount_due, MockGateway())
+    out = vehicle_exit(lot, t.ticket_id, later, tickets)
+    assert out.exit_time == later
+    assert lot.get_slot(t.slot_id).is_free and lot.occupancy()["occupied"] == 0
+
+
+def test_tc_ext_01_grace_period_exit_needs_no_payment():
+    lot, tickets, t, later = _parked(10)
+    vehicle_exit(lot, t.ticket_id, later, tickets)
+    assert t.amount_due == 0 and lot.get_slot(t.slot_id).is_free
+
+
+def test_tc_ext_01_unknown_or_closed_ticket_rejected():
+    lot, tickets, t, later = _parked(10)
+    with pytest.raises(ParkingError, match="Unknown"):
+        vehicle_exit(lot, "nope", later, tickets)
+    vehicle_exit(lot, t.ticket_id, later, tickets)
+    with pytest.raises(ParkingError, match="closed"):
+        vehicle_exit(lot, t.ticket_id, later, tickets)
+
+
+def test_tc_ent_02_ticket_records_vehicle_type():
+    _, _, t, _ = _parked(0)
+    assert t.vehicle_type == VehicleType.CAR

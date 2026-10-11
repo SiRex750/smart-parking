@@ -59,6 +59,7 @@ class Ticket:
     exit_time: Optional[datetime] = None
     amount_due: float = 0.0
     paid: bool = False
+    vehicle_type: Optional[VehicleType] = None  # set at entry; needed for the exit fee
 
 
 @dataclass
