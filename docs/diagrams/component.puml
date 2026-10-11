@@ -1,0 +1,42 @@
+@startuml
+!include common.iuml
+skinparam componentBackgroundColor #EAF2FB
+skinparam componentBorderColor #2E74B5
+package "Presentation Layer" {
+  [CLI / Operator Console\n(main.py)] as UI
+  [Web UI (future)] as WEB
+}
+package "Service Layer" {
+  [Allocation Service\n(allocation.py)] as ALC
+  [Entry/Exit Service\n(entry_exit.py)] as EE
+  [Reservation Service\n(reservations.py)] as RES
+  [Billing & Payment Service\n(billing.py)] as BIL
+  [Reporting Service\n(reports.py)] as RPT
+}
+package "Domain Layer" {
+  [Domain Model\n(models.py)] as DOM
+}
+package "Infrastructure" {
+  database "Data Store\n(in-memory → SQLite)" as DB
+  [Audit Logger] as LOG
+  [Payment Gateway Adapter\n(mock)] as PGA
+}
+cloud "External Payment\nGateway" as EXT
+UI --> EE
+UI --> RES
+UI --> RPT
+WEB ..> EE
+EE --> ALC
+RES --> ALC
+EE --> BIL
+BIL --> PGA
+PGA ..> EXT
+ALC --> DOM
+EE --> DOM
+RES --> DOM
+BIL --> DOM
+RPT --> DOM
+DOM --> DB
+EE --> LOG
+BIL --> LOG
+@enduml

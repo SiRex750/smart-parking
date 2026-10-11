@@ -1,0 +1,100 @@
+@startuml
+!include common.iuml
+skinparam classBackgroundColor #EAF2FB
+skinparam classBorderColor #2E74B5
+hide empty members
+enum VehicleType {
+  BIKE
+  CAR
+  SUV
+}
+enum SlotType {
+  TWO_WHEELER
+  COMPACT
+  LARGE
+}
+class Vehicle {
+  plate: str
+  vehicle_type: VehicleType
+  is_ev: bool
+}
+class Slot {
+  slot_id: str
+  slot_type: SlotType
+  level: int
+  is_ev: bool
+  occupied_by: str?
+  reserved_for: str?
+  --
+  is_free(): bool
+}
+class ParkingLot {
+  name: str
+  slots: List<Slot>
+  --
+  get_slot(id): Slot
+  free_slots(): List<Slot>
+  occupancy(): dict
+}
+class Ticket {
+  ticket_id: str
+  plate: str
+  slot_id: str
+  entry_time: datetime
+  exit_time: datetime?
+  amount_due: float
+  paid: bool
+}
+class Reservation {
+  reservation_id: str
+  plate: str
+  vehicle_type: VehicleType
+  slot_id: str
+  start_time: datetime
+  status: ACTIVE|CANCELLED|EXPIRED|USED
+}
+class Payment {
+  payment_id: str
+  ticket_id: str
+  amount: float
+  method: str
+  gateway_ref: str
+  timestamp: datetime
+}
+class AllocationService {
+  find_slot(lot, vehicle): Slot?
+}
+class EntryExitService {
+  validate_plate(plate): bool
+  vehicle_entry(lot, vehicle, now): Ticket
+  vehicle_exit(lot, ticket_id, now): Ticket
+}
+class ReservationService {
+  create(lot, vehicle, start): Reservation
+  cancel(lot, reservation_id)
+  expire_no_shows(lot, now): int
+  check_in(lot, reservation_id, now): Ticket
+}
+class BillingService {
+  calculate_fee(vehicle_type, entry, exit): float
+  pay(ticket, amount, gateway): Payment
+  receipt(ticket, payment): str
+}
+class ReportService {
+  occupancy_by_level_and_type(lot): dict
+}
+ParkingLot "1" *-- "many" Slot
+Slot --> SlotType
+Vehicle --> VehicleType
+Ticket --> Slot : parked in
+Reservation --> Slot : holds
+Payment --> Ticket : settles
+EntryExitService ..> AllocationService
+ReservationService ..> AllocationService
+EntryExitService ..> BillingService
+EntryExitService ..> Ticket : creates
+ReservationService ..> Reservation : manages
+BillingService ..> Payment : creates
+ReportService ..> ParkingLot
+AllocationService ..> ParkingLot
+@enduml

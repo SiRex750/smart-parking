@@ -1,0 +1,46 @@
+@startuml
+!include common.iuml
+autonumber
+actor Driver
+participant "Operator Console" as UI
+participant "BillingService" as BIL
+participant "Payment Gateway\nAdapter" as PG
+participant "EntryExitService" as EE
+participant "ParkingLot / Slot" as LOT
+participant "Audit Logger" as LOG
+Driver -> UI : present ticket at exit
+UI -> BIL : calculate_fee(vehicle_type, entry_time, now)
+BIL --> UI : amount_due (grace period, hourly rate, daily cap)
+UI --> Driver : show amount due
+opt amount_due > 0
+  Driver -> UI : pay(amount, method)
+  UI -> BIL : pay(ticket, amount, gateway)
+  alt amount != amount_due
+    BIL --> UI : PaymentError("amount mismatch")
+    UI --> Driver : "Incorrect amount"
+  else amount correct
+    BIL -> PG : charge(amount, method)
+    alt gateway declines
+      PG --> BIL : declined
+      BIL --> UI : PaymentError("declined")
+      UI --> Driver : "Payment failed, retry"
+    else approved
+      PG --> BIL : gateway_ref
+      BIL -> BIL : ticket.paid = True\ncreate Payment
+      BIL -> LOG : log(PAYMENT, ticket, amount)
+      BIL --> UI : payment
+    end
+  end
+end
+UI -> EE : vehicle_exit(lot, ticket_id, now)
+alt ticket unpaid and amount_due > 0
+  EE --> UI : UnpaidTicketError
+  UI --> Driver : "Please pay before exit"
+else paid or within grace period
+  EE -> EE : ticket.exit_time = now
+  EE -> LOT : slot.occupied_by = None
+  EE -> LOG : log(EXIT, plate, slot, now)
+  EE --> UI : closed ticket
+  UI --> Driver : receipt + gate opens
+end
+@enduml
