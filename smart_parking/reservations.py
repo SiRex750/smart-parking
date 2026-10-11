@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from smart_parking.allocation import find_slot
-from smart_parking.errors import LotFullError
+from smart_parking.errors import LotFullError, ReservationError
 from smart_parking.models import ParkingLot, Vehicle, VehicleType
 
 ACTIVE, CANCELLED, EXPIRED, USED = "ACTIVE", "CANCELLED", "EXPIRED", "USED"
@@ -37,4 +37,21 @@ def create(lot: ParkingLot, vehicle: Vehicle, start: datetime, reservations: dic
     )
     slot.reserved_for = reservation.reservation_id
     reservations[reservation.reservation_id] = reservation
+    return reservation
+
+
+def cancel(lot: ParkingLot, reservation_id: str, reservations: dict) -> Reservation:
+    """Cancel an ACTIVE reservation and release its held slot (SPMS-F-011).
+
+    Raises ReservationError if the id is unknown or the reservation is not ACTIVE.
+    """
+    reservation = reservations.get(reservation_id)
+    if reservation is None:
+        raise ReservationError(f"Unknown reservation {reservation_id!r}")
+    if reservation.status != ACTIVE:
+        raise ReservationError(f"Reservation is {reservation.status}, not ACTIVE")
+    slot = lot.get_slot(reservation.slot_id)
+    if slot.reserved_for == reservation_id:
+        slot.reserved_for = None
+    reservation.status = CANCELLED
     return reservation

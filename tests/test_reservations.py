@@ -47,3 +47,37 @@ def test_tc_res_01_full_lot_raises():
     with pytest.raises(LotFullError):
         create(lot, Vehicle("KA01AB0003", VehicleType.SUV), START, res)
     assert len(res) == 2
+
+
+# --- SPMS-F-011 cancel ----------------------------------------------------------
+from smart_parking.errors import ReservationError
+from smart_parking.reservations import CANCELLED, cancel
+
+
+def test_tc_res_02_cancel_releases_slot():
+    lot, res = build_demo_lot(), {}
+    r = create(lot, CAR, START, res)
+    out = cancel(lot, r.reservation_id, res)
+    assert out.status == CANCELLED
+    assert lot.get_slot(r.slot_id).is_free
+    assert lot.occupancy()["reserved"] == 0
+
+
+def test_tc_res_02_cancel_twice_rejected():
+    lot, res = build_demo_lot(), {}
+    r = create(lot, CAR, START, res)
+    cancel(lot, r.reservation_id, res)
+    with pytest.raises(ReservationError):
+        cancel(lot, r.reservation_id, res)
+
+
+def test_tc_res_02_unknown_id_rejected():
+    with pytest.raises(ReservationError):
+        cancel(build_demo_lot(), "does-not-exist", {})
+
+
+def test_tc_res_02_released_slot_can_be_reserved_again():
+    lot, res = build_demo_lot(), {}
+    r = create(lot, CAR, START, res)
+    cancel(lot, r.reservation_id, res)
+    assert create(lot, CAR, START, res).slot_id == r.slot_id
