@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from smart_parking.allocation import find_slot
-from smart_parking.errors import InvalidPlateError, LotFullError
+from smart_parking.errors import DuplicateEntryError, InvalidPlateError, LotFullError
 from smart_parking.models import ParkingLot, Ticket, Vehicle
 
 # 2 letters (state), 1-2 digits (RTO), 0-3 letters (series), 4 digits (number)
@@ -26,11 +26,14 @@ def vehicle_entry(lot: ParkingLot, vehicle: Vehicle, now: datetime, tickets: dic
 
     Validates the plate, allocates the best slot, marks it occupied and issues a
     ticket stored in `tickets` under a random UUID.
-    Raises InvalidPlateError or LotFullError; the lot is unchanged on error.
+    Raises InvalidPlateError, DuplicateEntryError (SPMS-F-008) or LotFullError;
+    the lot is unchanged on error.
     """
     if not validate_plate(vehicle.plate):
         raise InvalidPlateError(f"Invalid number plate: {vehicle.plate!r}")
     plate = vehicle.plate.strip().upper()
+    if any(s.occupied_by == plate for s in lot.slots):
+        raise DuplicateEntryError(f"Vehicle {plate} is already parked")
     slot = find_slot(lot, vehicle)
     if slot is None:
         raise LotFullError(f"Lot full for {vehicle.vehicle_type.value}")

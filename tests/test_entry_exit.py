@@ -57,3 +57,29 @@ def test_tc_ent_02_lot_full_raises():
     with pytest.raises(LotFullError):
         vehicle_entry(lot, Vehicle("KA01AB0003", VehicleType.SUV), NOW, tickets)
     assert len(tickets) == 2
+
+
+# --- SPMS-F-008 duplicate entry -----------------------------------------------
+from smart_parking.errors import DuplicateEntryError
+
+
+def test_tc_ent_03_same_plate_twice_rejected():
+    lot, tickets = build_demo_lot(), {}
+    vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
+    with pytest.raises(DuplicateEntryError):
+        vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
+    assert len(tickets) == 1 and lot.occupancy()["occupied"] == 1
+
+
+def test_tc_ent_03_duplicate_check_ignores_case_and_spaces():
+    lot, tickets = build_demo_lot(), {}
+    vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
+    with pytest.raises(DuplicateEntryError):
+        vehicle_entry(lot, Vehicle(" ka01ab1234 ", VehicleType.CAR), NOW, tickets)
+
+
+def test_tc_ent_03_different_plates_both_allowed():
+    lot, tickets = build_demo_lot(), {}
+    vehicle_entry(lot, Vehicle("KA01AB1234", VehicleType.CAR), NOW, tickets)
+    vehicle_entry(lot, Vehicle("KA01AB1235", VehicleType.CAR), NOW, tickets)
+    assert lot.occupancy()["occupied"] == 2
