@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from smart_parking.allocation import find_slot
-from smart_parking.errors import LotFullError, ReservationError
-from smart_parking.models import ParkingLot, Vehicle, VehicleType
+from smart_parking.errors import DuplicateEntryError, LotFullError, ReservationError
+from smart_parking.models import ParkingLot, Ticket, Vehicle, VehicleType
 
 ACTIVE, CANCELLED, EXPIRED, USED = "ACTIVE", "CANCELLED", "EXPIRED", "USED"
 NO_SHOW_GRACE = timedelta(minutes=15)
@@ -72,3 +72,38 @@ def expire_no_shows(lot: ParkingLot, now: datetime, reservations: dict) -> int:
             reservation.status = EXPIRED
             expired += 1
     return expired
+
+
+def check_in(lot: ParkingLot, reservation_id: str, now: datetime, reservations: dict,
+             tickets: dict) -> Ticket:
+    """Park a vehicle in its reserved slot and issue a ticket (SPMS-F-013).
+
+    Raises ReservationError if the id is unknown, the reservation is not ACTIVE,
+    or it is more than 15 minutes past its start (it is expired on the spot).
+    Raises DuplicateEntryError if the plate is already parked elsewhere.
+    """
+    reservation = reservations.get(reservation_id)
+    if reservation is None:
+        raise ReservationError(f"Unknown reservation {reservation_id!r}")
+    if reservation.status != ACTIVE:
+        raise ReservationError(f"Reservation is {reservation.status}, not ACTIVE")
+    slot = lot.get_slot(reservation.slot_id)
+    if now > reservation.start_time + NO_SHOW_GRACE:
+        if slot.reserved_for == reservation_id:
+            slot.reserved_for = None
+        reservation.status = EXPIRED
+        raise ReservationError("Reservation expired (more than 15 minutes late)")
+    if any(s.occupied_by == reservation.plate for s in lot.slots):
+        raise DuplicateEntryError(f"Vehicle {reservation.plate} is already parked")
+    slot.reserved_for = None
+    slot.occupied_by = reservation.plate
+    ticket = Ticket(
+        ticket_id=str(uuid.uuid4()),
+        plate=reservation.plate,
+        slot_id=slot.slot_id,
+        entry_time=now,
+        vehicle_type=reservation.vehicle_type,
+    )
+    tickets[ticket.ticket_id] = ticket
+    reservation.status = USED
+    return ticket
