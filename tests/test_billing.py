@@ -79,3 +79,39 @@ def test_tc_pay_01_negative_or_non_numeric_amount_rejected():
     for bad in (-60, "60", None):
         with pytest.raises(PaymentError):
             pay(make_ticket(), bad, MockGateway())
+
+
+# --- SPMS-F-016 receipt ----------------------------------------------------------
+from smart_parking.billing import receipt
+
+
+def test_tc_pay_02_receipt_has_all_fields():
+    t = make_ticket()
+    t.exit_time = T0 + timedelta(minutes=61)
+    p = pay(t, 60, MockGateway(), method="upi", now=t.exit_time)
+    text = receipt(t, p)
+    for part in ("T1", "KA01AB1234", "L0-C1", "10-10-2026 09:00", "10-10-2026 10:01",
+                 "1h 01m", "Rs 60.00", "upi", p.gateway_ref):
+        assert part in text
+
+
+def test_tc_pay_02_uses_payment_time_before_exit():
+    t = make_ticket()
+    p = pay(t, 60, MockGateway(), now=T0 + timedelta(hours=2))
+    assert "2h 00m" in receipt(t, p)
+
+
+def test_tc_pay_02_unpaid_ticket_rejected():
+    t, other = make_ticket(), make_ticket()
+    p = pay(other, 60, MockGateway())
+    with pytest.raises(PaymentError, match="unpaid"):
+        receipt(t, p)
+
+
+def test_tc_pay_02_mismatched_payment_rejected():
+    t = make_ticket()
+    pay(t, 60, MockGateway())
+    other = Ticket("T2", "KA01AB9999", "L0-C2", T0, amount_due=30)
+    p2 = pay(other, 30, MockGateway())
+    with pytest.raises(PaymentError, match="belong"):
+        receipt(t, p2)

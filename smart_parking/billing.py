@@ -88,3 +88,32 @@ def pay(ticket: Ticket, amount: float, gateway: PaymentGateway, method: str = "c
         gateway_ref=ref,
         timestamp=now or datetime.now(),
     )
+
+
+# --- SPMS-F-016 receipt --------------------------------------------------------
+def receipt(ticket: Ticket, payment: Payment) -> str:
+    """Plain-text receipt for a paid ticket.
+
+    Shows ticket id, plate, slot, entry and exit/paid time, duration, amount and
+    payment reference. Raises PaymentError if the ticket is unpaid or the payment
+    belongs to a different ticket.
+    """
+    if not ticket.paid:
+        raise PaymentError("Cannot issue a receipt for an unpaid ticket")
+    if payment.ticket_id != ticket.ticket_id:
+        raise PaymentError("Payment does not belong to this ticket")
+    end = ticket.exit_time or payment.timestamp
+    minutes = int((end - ticket.entry_time).total_seconds() // 60)
+    fmt = "%d-%m-%Y %H:%M"
+    lines = [
+        "SMART PARKING - RECEIPT",
+        f"Ticket   : {ticket.ticket_id}",
+        f"Plate    : {ticket.plate}",
+        f"Slot     : {ticket.slot_id}",
+        f"Entry    : {ticket.entry_time.strftime(fmt)}",
+        f"Exit     : {end.strftime(fmt)}",
+        f"Duration : {minutes // 60}h {minutes % 60:02d}m",
+        f"Amount   : Rs {payment.amount:.2f}",
+        f"Paid via : {payment.method} (ref {payment.gateway_ref})",
+    ]
+    return "\n".join(lines)
