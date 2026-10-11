@@ -1,6 +1,7 @@
 """Slot allocation (SPMS-F-002..005)."""
 from typing import Optional
 
+from smart_parking.errors import LotFullError
 from smart_parking.models import COMPATIBLE_SLOTS, ParkingLot, Slot, Vehicle
 
 
@@ -18,3 +19,22 @@ def find_slot(lot: ParkingLot, vehicle: Vehicle) -> Optional[Slot]:
     if not candidates:
         return None
     return min(candidates, key=lambda s: (s.is_ev != vehicle.is_ev, allowed.index(s.slot_type), s.level))
+
+
+def require_slot(lot: ParkingLot, vehicle: Vehicle) -> Slot:
+    """Like find_slot, but raise a clear LotFullError when nothing fits (SPMS-F-005).
+
+    The message names the vehicle type and how many compatible slots exist, e.g.
+    "Lot full for suv: all 2 large slot(s) are occupied or reserved".
+    """
+    slot = find_slot(lot, vehicle)
+    if slot is not None:
+        return slot
+    allowed = COMPATIBLE_SLOTS[vehicle.vehicle_type]
+    total = sum(1 for s in lot.slots if s.slot_type in allowed)
+    kinds = "/".join(t.value for t in allowed)
+    if total == 0:
+        raise LotFullError(f"Lot full for {vehicle.vehicle_type.value}: this lot has no {kinds} slots")
+    raise LotFullError(
+        f"Lot full for {vehicle.vehicle_type.value}: all {total} {kinds} slot(s) are occupied or reserved"
+    )
