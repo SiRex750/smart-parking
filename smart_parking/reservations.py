@@ -1,13 +1,14 @@
 """Reservations (SPMS-F-010..013)."""
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from smart_parking.allocation import find_slot
 from smart_parking.errors import LotFullError, ReservationError
 from smart_parking.models import ParkingLot, Vehicle, VehicleType
 
 ACTIVE, CANCELLED, EXPIRED, USED = "ACTIVE", "CANCELLED", "EXPIRED", "USED"
+NO_SHOW_GRACE = timedelta(minutes=15)
 
 
 @dataclass
@@ -55,3 +56,19 @@ def cancel(lot: ParkingLot, reservation_id: str, reservations: dict) -> Reservat
         slot.reserved_for = None
     reservation.status = CANCELLED
     return reservation
+
+
+def expire_no_shows(lot: ParkingLot, now: datetime, reservations: dict) -> int:
+    """Expire ACTIVE reservations more than 15 minutes past their start (SPMS-F-012).
+
+    Releases each expired reservation's slot and returns how many were expired.
+    """
+    expired = 0
+    for reservation in reservations.values():
+        if reservation.status == ACTIVE and now > reservation.start_time + NO_SHOW_GRACE:
+            slot = lot.get_slot(reservation.slot_id)
+            if slot.reserved_for == reservation.reservation_id:
+                slot.reserved_for = None
+            reservation.status = EXPIRED
+            expired += 1
+    return expired

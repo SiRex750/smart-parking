@@ -81,3 +81,35 @@ def test_tc_res_02_released_slot_can_be_reserved_again():
     r = create(lot, CAR, START, res)
     cancel(lot, r.reservation_id, res)
     assert create(lot, CAR, START, res).slot_id == r.slot_id
+
+
+# --- SPMS-F-012 no-show expiry ----------------------------------------------------
+from datetime import timedelta
+
+from smart_parking.reservations import EXPIRED, expire_no_shows
+
+
+@pytest.mark.parametrize("minutes, expected_status, expired_count", [
+    (14, ACTIVE, 0), (15, ACTIVE, 0), (16, EXPIRED, 1),
+])
+def test_tc_res_03_expiry_boundary(minutes, expected_status, expired_count):
+    lot, res = build_demo_lot(), {}
+    r = create(lot, CAR, START, res)
+    assert expire_no_shows(lot, START + timedelta(minutes=minutes), res) == expired_count
+    assert r.status == expected_status
+    assert lot.get_slot(r.slot_id).is_free == (expected_status == EXPIRED)
+
+
+def test_tc_res_03_only_active_reservations_expire():
+    lot, res = build_demo_lot(), {}
+    a = create(lot, CAR, START, res)
+    b = create(lot, Vehicle("KA01AB9999", VehicleType.CAR), START, res)
+    cancel(lot, a.reservation_id, res)
+    assert expire_no_shows(lot, START + timedelta(hours=1), res) == 1
+    assert a.status == CANCELLED and b.status == EXPIRED
+
+
+def test_tc_res_03_future_reservations_untouched():
+    lot, res = build_demo_lot(), {}
+    r = create(lot, CAR, START + timedelta(hours=2), res)
+    assert expire_no_shows(lot, START, res) == 0 and r.status == ACTIVE
