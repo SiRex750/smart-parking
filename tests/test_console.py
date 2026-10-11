@@ -88,3 +88,13 @@ def test_tc_ux_01_no_show_expired_automatically():
     s.answers = ["4", "KA01AB1234", "car", "n", "0", much_later, "0"]
     c.run()
     assert next(iter(c.reservations.values())).status == "EXPIRED"
+
+
+def test_tc_ux_01_check_in_from_menu():
+    s, c = make()
+    rid = lambda: next(iter(c.reservations))
+    s.answers = ["4", "KA01AB1234", "car", "n", "0", "8", rid, "6", "0"]
+    c.run()
+    out = s.text()
+    assert "-> reserved slot L0-C1" in out
+    assert "occupied 1 | reserved 0" in out

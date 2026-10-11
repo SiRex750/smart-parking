@@ -38,3 +38,17 @@ def test_tc_int_01_many_vehicles_fill_and_empty_lot():
     for t in list(tickets.values()):
         vehicle_exit(lot, t.ticket_id, T0 + timedelta(minutes=10), tickets)
     assert lot.occupancy()["available"] == 10
+
+
+# --- TC-INT-02 reserve -> check-in -> exit --------------------------------------
+from smart_parking.reservations import USED, check_in, create
+
+
+def test_tc_int_02_reserve_check_in_exit_within_grace():
+    lot, res, tickets = build_demo_lot(), {}, {}
+    r = create(lot, Vehicle("KA01AB1234", VehicleType.SUV), T0, res)
+    t = check_in(lot, r.reservation_id, T0 + timedelta(minutes=5), res, tickets)
+    assert t.slot_id == r.slot_id and r.status == USED
+    vehicle_exit(lot, t.ticket_id, T0 + timedelta(minutes=15), tickets)
+    assert t.amount_due == 0
+    assert lot.occupancy()["available"] == 10

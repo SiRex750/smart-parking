@@ -11,7 +11,7 @@ from smart_parking.models import ParkingLot, Slot, SlotType, Vehicle, VehicleTyp
 
 MENU = """
 1) Vehicle entry      2) Vehicle exit       3) Pay ticket
-4) Reserve a slot     5) Cancel reservation
+4) Reserve a slot     5) Cancel reservation 8) Check in reservation
 6) Occupancy          7) Report by level    0) Quit"""
 
 TYPES = {"bike": VehicleType.BIKE, "car": VehicleType.CAR, "suv": VehicleType.SUV}
@@ -77,6 +77,11 @@ class Console:
         r = reservations.cancel(self.lot, self.ask("Reservation id: ").strip(), self.reservations)
         self.say(f"Reservation cancelled; slot {r.slot_id} released.")
 
+    def check_in(self):
+        rid = self.ask("Reservation id: ").strip()
+        t = reservations.check_in(self.lot, rid, self.clock(), self.reservations, self.tickets)
+        self.say(f"Ticket {t.ticket_id} -> reserved slot {t.slot_id}")
+
     def occupancy(self):
         o = self.lot.occupancy()
         self.say(f"Total {o['total']} | occupied {o['occupied']} | reserved {o['reserved']} | available {o['available']}")
@@ -88,7 +93,7 @@ class Console:
 
     def run(self):
         actions = {"1": self.entry, "2": self.exit, "3": self.pay, "4": self.reserve,
-                   "5": self.cancel, "6": self.occupancy, "7": self.report}
+                   "5": self.cancel, "6": self.occupancy, "7": self.report, "8": self.check_in}
         self.say(f"Smart Parking Management System - {self.lot.name}")
         while True:
             reservations.expire_no_shows(self.lot, self.clock(), self.reservations)
