@@ -113,3 +113,47 @@ def test_tc_res_03_future_reservations_untouched():
     lot, res = build_demo_lot(), {}
     r = create(lot, CAR, START + timedelta(hours=2), res)
     assert expire_no_shows(lot, START, res) == 0 and r.status == ACTIVE
+
+
+# --- SPMS-F-013 check-in ----------------------------------------------------------
+from smart_parking.errors import DuplicateEntryError
+from smart_parking.reservations import USED, check_in
+
+
+def test_tc_res_04_check_in_parks_in_held_slot():
+    lot, res, tickets = build_demo_lot(), {}, {}
+    r = create(lot, CAR, START, res)
+    t = check_in(lot, r.reservation_id, START + timedelta(minutes=5), res, tickets)
+    slot = lot.get_slot(r.slot_id)
+    assert t.slot_id == r.slot_id and tickets[t.ticket_id] is t
+    assert slot.occupied_by == "KA01AB1234" and slot.reserved_for is None
+    assert r.status == USED and t.vehicle_type == VehicleType.CAR
+    occ = lot.occupancy()
+    assert occ["occupied"] == 1 and occ["reserved"] == 0
+
+
+def test_tc_res_04_unknown_or_used_reservation_rejected():
+    lot, res, tickets = build_demo_lot(), {}, {}
+    with pytest.raises(ReservationError):
+        check_in(lot, "unknown", START, res, tickets)
+    r = create(lot, CAR, START, res)
+    check_in(lot, r.reservation_id, START, res, tickets)
+    with pytest.raises(ReservationError):
+        check_in(lot, r.reservation_id, START, res, tickets)
+
+
+def test_tc_res_04_late_check_in_expires_reservation():
+    lot, res, tickets = build_demo_lot(), {}, {}
+    r = create(lot, CAR, START, res)
+    with pytest.raises(ReservationError, match="expired"):
+        check_in(lot, r.reservation_id, START + timedelta(minutes=16), res, tickets)
+    assert r.status == EXPIRED and lot.get_slot(r.slot_id).is_free and tickets == {}
+
+
+def test_tc_res_04_plate_already_parked_rejected():
+    lot, res, tickets = build_demo_lot(), {}, {}
+    r = create(lot, CAR, START, res)
+    lot.get_slot("L1-C1").occupied_by = "KA01AB1234"
+    with pytest.raises(DuplicateEntryError):
+        check_in(lot, r.reservation_id, START, res, tickets)
+    assert r.status == ACTIVE
