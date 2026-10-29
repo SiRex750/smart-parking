@@ -21,14 +21,19 @@ SE Mini Project — PES University. Python 3.12 + pytest, CI on GitHub Actions.
 |---|---|
 | Software Requirements Specification (v1.1, with RTM) | [docs/SRS_SmartParking.docx](docs/SRS_SmartParking.docx) |
 | Software Architecture & Design | [docs/SAD_SmartParking.docx](docs/SAD_SmartParking.docx) |
-| Software Test Plan (v1.1) | [docs/TestPlan_SmartParking.docx](docs/TestPlan_SmartParking.docx) |
-| Test Summary Report | [docs/TestSummaryReport_SmartParking.docx](docs/TestSummaryReport_SmartParking.docx) |
+| Software Test Plan (v1.2) | [docs/TestPlan_SmartParking.docx](docs/TestPlan_SmartParking.docx) |
+| Test Summary Report (v1.1) | [docs/TestSummaryReport_SmartParking.docx](docs/TestSummaryReport_SmartParking.docx) |
+| Unit Test Report | [docs/reports/UnitTestReport_SmartParking.docx](docs/reports/UnitTestReport_SmartParking.docx) |
+| System Validation Report | [docs/reports/SystemValidationReport_SmartParking.docx](docs/reports/SystemValidationReport_SmartParking.docx) |
+| Code Coverage Report | [docs/reports/CodeCoverageReport_SmartParking.docx](docs/reports/CodeCoverageReport_SmartParking.docx) |
+| Branch Coverage Report | [docs/reports/BranchCoverageReport_SmartParking.docx](docs/reports/BranchCoverageReport_SmartParking.docx) |
+| Raw test and coverage data (JUnit XML, coverage XML/JSON, HTML) | [docs/reports/raw/](docs/reports/raw) |
 | UML diagrams (PlantUML source + PNG) | [docs/diagrams/](docs/diagrams) |
 
 ## Status
 
 - **17 / 17 functional requirements** implemented (`SPMS-F-001` … `SPMS-F-017`, see [FEATURES.md](FEATURES.md))
-- **103 tests**, all passing; **98% line coverage** (CI fails below 80%)
+- **113 tests**, all passing; **100% line and branch coverage** (CI fails below 80%)
 - **19 pull requests**, each merged only after CI passed and a teammate approved
 
 ## Run it
