@@ -27,6 +27,7 @@ SE Mini Project — PES University. Python 3.12 + pytest, CI on GitHub Actions.
 | System Validation Report | [docs/reports/SystemValidationReport_SmartParking.docx](docs/reports/SystemValidationReport_SmartParking.docx) |
 | Code Coverage Report | [docs/reports/CodeCoverageReport_SmartParking.docx](docs/reports/CodeCoverageReport_SmartParking.docx) |
 | Branch Coverage Report | [docs/reports/BranchCoverageReport_SmartParking.docx](docs/reports/BranchCoverageReport_SmartParking.docx) |
+| Sprint report: backlog, story points, sprint outcomes, deviations | [docs/SprintReport_SmartParking.md](docs/SprintReport_SmartParking.md) |
 | Raw test and coverage data (JUnit XML, coverage XML/JSON, HTML) | [docs/reports/raw/](docs/reports/raw) |
 | UML diagrams (PlantUML source + PNG) | [docs/diagrams/](docs/diagrams) |
 
@@ -35,6 +36,12 @@ SE Mini Project — PES University. Python 3.12 + pytest, CI on GitHub Actions.
 - **17 / 17 functional requirements** implemented (`SPMS-F-001` … `SPMS-F-017`, see [FEATURES.md](FEATURES.md))
 - **113 tests**, all passing; **100% line and branch coverage** (CI fails below 80%)
 - **19 pull requests**, each merged only after CI passed and a teammate approved
+
+## Backlog and sprints
+
+- Backlog: [Issues](https://github.com/SiRex750/smart-parking/issues?q=is%3Aissue) — one per SRS requirement, with story points (`SP: n` labels) and an assignee
+- Sprints: [Milestones](https://github.com/SiRex750/smart-parking/milestones?state=all) — Sprint-1 (19–23 Oct), Sprint-2 (26–30 Oct), Sprint-3 (2–6 Nov, testing)
+- Outcomes and deviations: [docs/SprintReport_SmartParking.md](docs/SprintReport_SmartParking.md)
 
 ## Run it
 
