@@ -1,0 +1,35 @@
+@startuml
+!include common.iuml
+autonumber
+actor Driver
+participant "Operator Console" as UI
+participant "EntryExitService" as EE
+participant "AllocationService" as ALC
+participant "ParkingLot / Slot" as LOT
+participant "Audit Logger" as LOG
+Driver -> UI : arrive at gate (plate, vehicle type)
+UI -> EE : vehicle_entry(lot, vehicle, now)
+EE -> EE : validate_plate(plate)
+alt plate invalid
+  EE --> UI : InvalidPlateError
+  UI --> Driver : "Invalid number plate"
+else plate already inside
+  EE --> UI : DuplicateEntryError
+  UI --> Driver : "Vehicle already parked"
+else valid
+  EE -> ALC : find_slot(lot, vehicle)
+  ALC -> LOT : free_slots() filtered by\ncompatible type, best fit, lowest level
+  alt no suitable slot
+    ALC --> EE : None
+    EE --> UI : LotFullError
+    UI --> Driver : "Lot full for this vehicle type"
+  else slot found
+    ALC --> EE : slot
+    EE -> LOT : slot.occupied_by = plate
+    EE -> EE : create Ticket(uuid4, plate, slot, now)
+    EE -> LOG : log(ENTRY, plate, slot, now)
+    EE --> UI : ticket
+    UI --> Driver : ticket + slot id / level
+  end
+end
+@enduml

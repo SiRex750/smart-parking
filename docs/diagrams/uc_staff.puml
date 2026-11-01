@@ -1,0 +1,30 @@
+@startuml
+!include common.iuml
+left to right direction
+skinparam usecaseBackgroundColor #EAF2FB
+skinparam usecaseBorderColor #2E74B5
+actor "Parking Operator" as Op
+actor Admin
+actor "Scheduler\n(system timer)" as Clock
+Admin -|> Op
+rectangle "Smart Parking Management System" {
+  usecase "Register vehicle entry" as E1
+  usecase "Validate number plate" as E2
+  usecase "Register vehicle exit" as E3
+  usecase "Monitor live occupancy" as E4
+  usecase "Generate occupancy report\n(by level / slot type)" as E5
+  usecase "Configure slots & levels" as E6
+  usecase "Configure tariffs" as E7
+  usecase "View audit log" as E8
+  usecase "Expire no-show reservations" as E9
+}
+Op --> E1
+Op --> E3
+Op --> E4
+Admin --> E5
+Admin --> E6
+Admin --> E7
+Admin --> E8
+Clock --> E9
+E1 ..> E2 : <<include>>
+@enduml

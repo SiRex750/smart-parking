@@ -1,0 +1,5 @@
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam dpi 200
+skinparam ArrowColor #333333
+skinparam backgroundColor white
