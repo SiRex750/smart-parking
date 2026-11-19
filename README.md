@@ -29,6 +29,7 @@ SE Mini Project — PES University. Python 3.12 + pytest, CI on GitHub Actions.
 | Branch Coverage Report | [docs/reports/BranchCoverageReport_SmartParking.docx](docs/reports/BranchCoverageReport_SmartParking.docx) |
 | Sprint report: backlog, story points, sprint outcomes, deviations | [docs/SprintReport_SmartParking.md](docs/SprintReport_SmartParking.md) |
 | Raw test and coverage data (JUnit XML, coverage XML/JSON, HTML) | [docs/reports/raw/](docs/reports/raw) |
+| Sprint demo videos (Sprint-1 1:06, Sprint-2 2:00) | [docs/videos/](docs/videos) |
 | UML diagrams (PlantUML source + PNG) | [docs/diagrams/](docs/diagrams) |
 
 ## Status
