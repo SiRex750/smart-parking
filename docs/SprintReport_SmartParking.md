@@ -101,5 +101,5 @@ These are explained at the final demo (Part-2 §2.i).
 
 | Sprint | Length | File |
 |---|---|---|
-| Sprint-1 | ~1 min | `docs/videos/Sprint1_Demo.mp4` (to be added) |
-| Sprint-2 | ~2 min | `docs/videos/Sprint2_Demo.mp4` (to be added) |
+| Sprint-1 | 1:06 | [docs/videos/Sprint1_Demo.mp4](videos/Sprint1_Demo.mp4): entry with best-fit allocation, duplicate entry, lot full, grace-period exit, paid flow test |
+| Sprint-2 | 2:00 | [docs/videos/Sprint2_Demo.mp4](videos/Sprint2_Demo.mp4): reserve, check in, report, cancel, payment/receipt tests, full suite with coverage |
