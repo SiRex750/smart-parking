@@ -83,9 +83,9 @@ smart_parking/
   billing.py       # fees, payment via gateway adapter, receipts
   reports.py       # occupancy by level and slot type
   main.py          # operator console
-frontend/          # React (Vite) web UI over the REST API
 tests/             # unit, integration, console and NFR tests (named after Test Plan ids)
 docs/              # SRS, SAD, Test Plan, Test Summary Report, UML
+frontend/          # React (Vite) web UI over the REST API
 .github/workflows/ci.yml  # pytest + coverage on every PR and push to main
 ```
 
