@@ -61,6 +61,17 @@ Console menu: `1` entry · `2` exit · `3` pay (prints receipt) · `4` reserve �
 
 Fee rules: first 15 minutes free, then ₹10 / ₹30 / ₹40 per started hour (bike / car / SUV), capped at 8× the hourly rate per 24 hours.
 
+## Web UI (React)
+
+Two terminals, from the repo root:
+
+```bash
+python -m smart_parking.api          # 1) REST API on http://127.0.0.1:5000
+cd frontend && npm install && npm run dev   # 2) UI on http://localhost:5173
+```
+
+The gate desk shows a live map of every bay per level, and lets the operator issue tickets, check fees, take payment (with receipt), open the exit gate, and reserve / check in / cancel reservations. The **+15 min / +1 hour** buttons move the demo clock so fees and no-show expiry can be shown. UI tests: `cd frontend && npm test`.
+
 ## Project layout
 
 ```
@@ -75,6 +86,7 @@ smart_parking/
   main.py          # operator console
 tests/             # unit, integration, console and NFR tests (named after Test Plan ids)
 docs/              # SRS, SAD, Test Plan, Test Summary Report, UML
+frontend/          # React (Vite) web UI over the REST API
 .github/workflows/ci.yml  # pytest + coverage on every PR and push to main
 ```
 
