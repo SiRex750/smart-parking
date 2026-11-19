@@ -26,3 +26,22 @@ jobs:
 
       - name: Run tests
         run: pytest -v --cov=smart_parking --cov-branch --cov-report=term-missing --cov-fail-under=80
+
+  # SPMS-NF-006 / TC-PORT-01: the same suite must pass on Windows.
+  test-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requirements
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -v --cov=smart_parking --cov-branch --cov-report=term-missing --cov-fail-under=80
