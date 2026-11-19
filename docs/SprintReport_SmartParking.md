@@ -96,6 +96,10 @@ These are explained at the final demo (Part-2 §2.i).
 5. **Exit flow.** As in the corrected SAD sequence diagram, the Entry/Exit service (not Billing) releases the slot,
    and exit is refused until any amount due is paid.
 6. **Extra API.** `allocation.require_slot()` (F-005) raises a descriptive `LotFullError`; the SAD lists only `find_slot()`.
+7. **Web UI added after the development freeze.** The SRS (§3.1) and SAD (§4.5) specify a command-line operator
+   console for v1.0 and a web dashboard as future work. A React UI was then required, so it was added in Sprint-3:
+   a Flask REST API implementing the endpoints already designed in SAD §4.3 (issue #57) and a React (Vite) gate-desk UI
+   over it (issue #58), each with tests and CI. The service modules were not changed.
 
 ## Sprint demo videos
 
