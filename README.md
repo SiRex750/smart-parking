@@ -55,6 +55,7 @@ pip install -r requirements.txt
 
 pytest                         # run all tests
 python -m smart_parking.main   # operator console
+python -m smart_parking.api    # REST API for the web UI on http://127.0.0.1:5000
 ```
 
 Console menu: `1` entry · `2` exit · `3` pay (prints receipt) · `4` reserve · `5` cancel reservation · `6` occupancy · `7` report by level · `8` check in reservation · `0` quit.
@@ -84,6 +85,7 @@ smart_parking/
   billing.py       # fees, payment via gateway adapter, receipts
   reports.py       # occupancy by level and slot type
   main.py          # operator console
+  api.py           # Flask REST API used by the React UI (SAD §4.3)
 tests/             # unit, integration, console and NFR tests (named after Test Plan ids)
 docs/              # SRS, SAD, Test Plan, Test Summary Report, UML
 frontend/          # React (Vite) web UI over the REST API
